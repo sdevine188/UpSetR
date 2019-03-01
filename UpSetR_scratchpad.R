@@ -5,6 +5,26 @@ library(dplyr)
 # https://cran.r-project.org/web/packages/UpSetR/vignettes/basic.usage.html
 # https://cran.r-project.org/web/packages/UpSetR/vignettes/queries.html
 
+# NOTE YOU MUST PASS UPSET() A DATAFRAME!  IT WON'T WORK ON TIBBLES
+
+# need to create category dummies to feed into upset()
+starwars %>% count(species, eye_color) %>% spread(key = eye_color, value = n) %>%
+        map2_dfc(.x = ., .y = names(.), 
+                 .f = ~ tibble(!!sym(.y) := .x) %>% mutate(!!sym(.y) := ifelse(is.na(!!sym(.y)), 0, !!sym(.y)))) %>%
+        data.frame() %>% upset(.)
+
+# can use unite() to merge variables and create broader groupings
+starwars %>% unite(col = skin_eye_color, skin_color, eye_color) %>% 
+        count(species, skin_eye_color) %>% spread(key = skin_eye_color, value = n) %>%
+        map2_dfc(.x = ., .y = names(.), .f = ~ tibble(!!sym(.y) := .x) %>% 
+                         mutate(!!sym(.y) := ifelse(is.na(!!sym(.y)), 0, !!sym(.y)))) %>%
+        data.frame() %>% upset(.)
+
+
+#################################################################################################################
+#################################################################################################################
+#################################################################################################################
+
 
 head(attrition)
 
